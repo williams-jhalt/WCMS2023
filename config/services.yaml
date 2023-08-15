@@ -4,12 +4,22 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.erp.url: '%env(ERP_CONNECTOR_URL)%'
+    app.erp.token: '%env(ERP_CONNECTOR_AUTH)%'  
+    app.import_dir: '%kernel.project_dir%/var/import'
+    app.product_image_location: '%kernel.project_dir%/public/images/products'
+    app.wholesale_rest_url: '%env(WHOLESALE_REST_URL)%'
 
 services:
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            $erpConnectorUrl: '%app.erp.url%'
+            $erpConnectorToken: '%app.erp.token%'
+            # $importDir: "%app.import_dir%/image_import"
+            $wholesaleRestUrl: "%app.wholesale_rest_url%"
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

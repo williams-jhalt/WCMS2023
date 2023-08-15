@@ -19,6 +19,11 @@ framework:
             Symfony\Component\Mailer\Messenger\SendEmailMessage: async
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
+            App\Message\ReloadFromErpMessage: async
+            App\Message\InsertNewProductsFromErpMessage: async
+            App\Message\InsertNewCustomersFromErpMessage: async
+            App\Message\UpdateProductFromErpMessage: async
+            App\Message\UpdateCustomerFromErpMessage: async
 
             # Route your messages to the transports
             # 'App\Message\YourMessage': async

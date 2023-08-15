@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello CatalogController!{% endblock %}
+
+{% block body %}
+<h1>Catalog</h1>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-2">
+
+            <div>Manufacturers</div>
+
+            {% for manufacturer in manufacturers %}
+                <div><a href="{{ path('app_catalog', {'manufacturerId': manufacturer.id, 'page': 1}) }}">{{ manufacturer.name }}</a></div>
+            {% endfor %}
+
+        </div>
+
+        <div class="col-10">
+
+            <table class="table table-bordered">
+                <tr><th>Item Number</th><th>Name</th></tr>    
+
+                {% for product in pager %}
+                <tr>
+                    <td>{{ product.itemNumber }}</td>
+                    <td>{{ product.name }}</td>
+                </tr>
+                {% endfor %}
+
+            </table>
+
+            {{ pagerfanta(pager) }}
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
