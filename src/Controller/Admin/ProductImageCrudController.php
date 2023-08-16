@@ -7,6 +7,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use Vich\UploaderBundle\Form\Type\VichImageType;
 
 class ProductImageCrudController extends AbstractCrudController
@@ -22,7 +23,9 @@ class ProductImageCrudController extends AbstractCrudController
             return [
                 TextareaField::new('imageFile')
                     ->setFormType(VichImageType::class)
-                    ->setFormTypeOptions(['allow_delete' => false])
+                    ->setFormTypeOptions(['allow_delete' => false]),
+                BooleanField::new('explicit'),
+                BooleanField::new('primaryImage')
             ];
         } else {
             return [

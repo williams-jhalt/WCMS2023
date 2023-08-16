@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Message\LoadNewItemsFromErpMessage;
 use App\Message\ReloadFromErpMessage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +23,7 @@ class DefaultController extends AbstractController
     public function reload(MessageBusInterface $bus): Response
     {
 
-        $bus->dispatch(new ReloadFromErpMessage());
+        $bus->dispatch(new LoadNewItemsFromErpMessage());
 
         return $this->redirect('/admin');
 

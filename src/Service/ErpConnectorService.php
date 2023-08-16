@@ -6,14 +6,14 @@ use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\ProductManufacturer;
 use App\Entity\ProductType;
-use App\Message\InsertNewCustomersFromErpMessage;
-use App\Message\InsertNewProductsFromErpMessage;
+use App\Message\UpdateCustomerFromErpMessage;
+use App\Message\UpdateProductFromErpMessage;
+use App\Model\ErpCustomer;
 use App\Model\ErpProduct;
 use App\Repository\CustomerRepository;
 use App\Repository\ProductManufacturerRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ProductTypeRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -37,30 +37,23 @@ class ErpConnectorService
     ) {
     }
 
-    public function getProduct(string $itemNumber): ErpProduct
-    {
-
-        $product = new ErpProduct();
-
-        return $product;
-
-    }
-
     public function loadNewProducts()
     {
 
-        $limit = 100;
+        $limit = 500;
         $offset = 0;
         $since = null;
+        $knownItemNumbers = [];
 
-        $lastProduct = $this->productRepository->createQueryBuilder("p")
-            ->orderBy('p.erpCreateDate', 'DESC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getSingleResult();
+        $count = $this->productRepository->createQueryBuilder("p")->select("count(p.id)")->getQuery()->getSingleScalarResult();
 
-        if ($lastProduct != null) {
-            $since = $lastProduct->getErpCreateDate()->format('m-d-Y');
+        if ($count > 0) {
+
+            $knownItemNumbers = $this->productRepository->createQueryBuilder("p")
+                ->select("p.itemNumber")
+                ->getQuery()
+                ->getSingleColumnResult();
+
         }
 
         do {
@@ -76,7 +69,11 @@ class ErpConnectorService
                 ]
             ])->toArray();
 
-            $this->bus->dispatch(new InsertNewProductsFromErpMessage($products));
+            foreach ($products as $product) {
+                if (array_search($product['item_number'], $knownItemNumbers) === false) {
+                    $this->bus->dispatch(new UpdateProductFromErpMessage(new ErpProduct($product)));
+                }
+            }
 
             $offset = $offset + $limit;
         } while (!empty($products));
@@ -86,17 +83,19 @@ class ErpConnectorService
     {
 
         $start = 0;
-        $limit = 100;
+        $limit = 500;
         $since = null;
+        $knownCustomerNumbers = [];
 
-        $lastCustomer = $this->customerRepository->createQueryBuilder("c")
-            ->orderBy('c.dateOpened', 'DESC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getSingleResult();
+        $count = $this->customerRepository->createQueryBuilder("c")->select("count(c.id)")->getQuery()->getSingleScalarResult();
 
-        if ($lastCustomer != null) {
-            $since = $lastCustomer->getDateOpened()->format('m-d-Y');
+        if ($count > 0) {
+
+            $knownCustomerNumbers = $this->customerRepository->createQueryBuilder("c")
+                ->select("c.customerNumber")
+                ->getQuery()
+                ->getSingleColumnResult();
+
         }
 
         do {
@@ -116,101 +115,118 @@ class ErpConnectorService
                 ]
             )->toArray();
 
-            $this->bus->dispatch(new InsertNewCustomersFromErpMessage($customers));
+            foreach ($customers as $customer) {
+                if (array_search($customer['customer_number'], $knownCustomerNumbers) === false) {
+                    $this->bus->dispatch(new UpdateCustomerFromErpMessage(new ErpCustomer($customer)));
+                }
+            }
 
             $start = $start + $limit;
         } while (!empty($customers));
     }
 
-    public function updateCustomer(string $customerNumber)
+    public function getCustomer(string $customerNumber): ErpCustomer
     {
 
-        $cacheId = md5("refreshCustomer:$customerNumber)");
+        $cacheId = md5("ErpConnectorService:getCustomer:$customerNumber");
 
-        $this->cache->get($cacheId, function (ItemInterface $item) use ($customerNumber) {
-
+        $customer = $this->cache->get($cacheId, function (ItemInterface $item) use ($customerNumber) {
             $item->expiresAfter(3600);
-
-            $customer = $this->client->request('GET', $this->erpConnectorUrl . "/api/customer/" . $customerNumber, [
+            return $this->client->request('GET', $this->erpConnectorUrl . "/api/customer/" . $customerNumber, [
                 'headers' => [
                     // 'X-AUTH-TOKEN' => $this->erpConnectorToken
                 ]
             ])->toArray();
-
-            $c = $this->customerRepository->findOneByCustomerNumber($customer['customer_number']);
-
-            $c->setCustomerNumber($customer['customer_number']);
-            $c->setCompany($customer['name']);
-            $c->setAddress1($customer['address1']);
-            $c->setAddress2($customer['address2']);
-            $c->setCity($customer['city']);
-            $c->setState($customer['state']);
-            $c->setPostalCode($customer['postal_code']);
-            $c->setCountry($customer['country_code']);
-            $c->setAttention($customer['attention']);
-            $c->setDateOpened(DateTimeImmutable::createFromFormat('Y-m-d', $customer['date_opened']));
-            $this->em->persist($c);
-            $this->em->flush();
         });
+
+        return new ErpCustomer($customer);
+
     }
 
-    public function updateProduct(string $itemNumber)
+    public function updateCustomer(ErpCustomer $customer)
     {
 
-        $cacheId = md5("refreshProduct:$itemNumber)");
+        $c = $this->customerRepository->findOneByCustomerNumber($customer->getCustomerNumber());
 
-        $this->cache->get($cacheId, function (ItemInterface $item) use ($itemNumber) {
+        if ($c === null) {
+            $c = new Customer();
+            $c->setCustomerNumber($customer->getCustomerNumber());
+        }
 
-            $item->expiresAfter(3600);
+        $c->setCompany($customer->getCompanyName());
+        $c->setAddress1($customer->getAddress1());
+        $c->setAddress2($customer->getAddress2());
+        $c->setCity($customer->getCity());
+        $c->setState($customer->getState());
+        $c->setPostalCode($customer->getPostalCode());
+        $c->setCountry($customer->getCountryCode());
+        $c->setAttention($customer->getAttention());
+        $c->setDateOpened($customer->getDateOpened());
 
-            $product = $this->client->request('GET', $this->erpConnectorUrl . "/api/product/" . $itemNumber, [
+        $this->em->persist($c);
+        $this->em->flush();
+
+    }
+
+    public function getProduct(string $itemNumber): ErpProduct
+    {
+
+        $cacheId = md5("ErpConnectorService:getProduct:$itemNumber");
+
+        $product = $this->cache->get($cacheId, function (ItemInterface $item) use ($itemNumber) {
+            $item->expiresAfter(3900);
+            return $this->client->request('GET', $this->erpConnectorUrl . "/api/product/" . $itemNumber, [
                 'headers' => [
                     // 'X-AUTH-TOKEN' => $this->erpConnectorToken
                 ]
             ])->toArray();
-
-
-            $p = $this->productRepository->findOneByItemNumber($product['item_number']);
-
-            if ($p === null) {
-                $p = new Product();
-                $p->setItemNumber($product['item_number']);
-            }
-
-            $productType = $this->productTypeRepository->findOneByCode($product['type_code']);
-            if ($productType === null) {
-                $productType = new ProductType();
-                $productType->setCode($product['type_code']);
-                $productType->setName($product['type_code']);
-                $this->em->persist($productType);
-                $this->em->flush();
-            }
-
-            $productMaufacturer = $this->productManufacturerRepository->findOneByCode($product['manufacturer_code']);
-            if ($productMaufacturer === null) {
-                $productMaufacturer = new ProductManufacturer();
-                $productMaufacturer->setCode($product['manufacturer_code']);
-                $productMaufacturer->setName($product['manufacturer_code']);
-                $this->em->persist($productMaufacturer);
-                $this->em->flush();
-            }
-
-            $p->setName($product['name']);
-            $p->setPrice($product['wholesale_price'] * 100);
-            $p->setActive($product['active'] == "A" ? true : false);
-            $p->setStockQuantity($product['on_hand_quantity']);
-            $p->setErpCreateDate(!empty($product['date_created']) ? \DateTimeImmutable::createFromFormat('Y-m-d', $product['date_created']) : null);
-            $p->setReleaseDate(!empty($product['release_date']) ? \DateTimeImmutable::createFromFormat('Y-m-d', $product['date_created']) : null);
-            if ($product['max_discount_rate'] !== null) {
-                $p->setMaxDiscountRate($product['max_discount_rate']);
-            }
-            $p->setSaleable($product['saleable'] == 1 ? true : false);
-            $p->setBarcode($product['upc']);
-            $p->setType($productType);
-            $p->setManufacturer($productMaufacturer);
-
-            $this->em->persist($p);
-            $this->em->flush();
         });
+
+        return new ErpProduct($product);
+
+    }
+
+    public function updateProduct(ErpProduct $product)
+    {
+
+        $p = $this->productRepository->findOneByItemNumber($product->getItemNumber());
+
+        if ($p === null) {
+            $p = new Product();
+            $p->setItemNumber($product->getItemNumber());
+        }
+
+        $productType = $this->productTypeRepository->findOneByCode($product->getTypeCode());
+        if ($productType === null) {
+            $productType = new ProductType();
+            $productType->setCode($product->getTypeCode());
+            $productType->setName($product->getTypeCode());
+            $this->em->persist($productType);
+            $this->em->flush();
+        }
+
+        $productMaufacturer = $this->productManufacturerRepository->findOneByCode($product->getManufacturerCode());
+        if ($productMaufacturer === null) {
+            $productMaufacturer = new ProductManufacturer();
+            $productMaufacturer->setCode($product->getManufacturerCode());
+            $productMaufacturer->setName($product->getManufacturerCode());
+            $this->em->persist($productMaufacturer);
+            $this->em->flush();
+        }
+
+        $p->setName($product->getName());
+        $p->setPrice($product->getWholesalePrice() * 100);
+        $p->setActive($product->getActive());
+        $p->setStockQuantity($product->getOnHandQuantity());
+        $p->setErpCreateDate($product->getDateCreated());
+        $p->setReleaseDate($product->getReleaseDate());
+        $p->setSaleable($product->getSaleable());
+        $p->setBarcode($product->getUpc());
+        $p->setType($productType);
+        $p->setManufacturer($productMaufacturer);
+
+        $this->em->persist($p);
+        $this->em->flush();
+
     }
 }

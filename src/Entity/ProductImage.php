@@ -37,6 +37,12 @@ class ProductImage
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
 
+    #[ORM\Column]
+    private ?bool $explicit = false;
+
+    #[ORM\Column]
+    private ?bool $primaryImage = false;
+
     public function __construct()
     {
         $this->image = new EmbeddedFile();
@@ -91,5 +97,29 @@ class ProductImage
     public function getUpdatedAt(): ?DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    public function isExplicit(): ?bool
+    {
+        return $this->explicit;
+    }
+
+    public function setExplicit(bool $explicit): static
+    {
+        $this->explicit = $explicit;
+
+        return $this;
+    }
+
+    public function isPrimaryImage(): ?bool
+    {
+        return $this->primaryImage;
+    }
+
+    public function setPrimaryImage(bool $primaryImage): static
+    {
+        $this->primaryImage = $primaryImage;
+
+        return $this;
     }
 }

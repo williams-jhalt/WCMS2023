@@ -4,11 +4,14 @@ namespace App\EventListener;
 
 use App\Entity\Customer;
 use App\Message\UpdateCustomerFromErpMessage;
+use App\Service\ErpConnectorService;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Events;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 #[AsDoctrineListener(event: Events::postLoad, priority: 500, connection: 'default')]
 class CustomerEventListener {
@@ -20,7 +23,9 @@ class CustomerEventListener {
      */
     public function __construct(
         private LoggerInterface $logger,
-        private MessageBusInterface $bus
+        private MessageBusInterface $bus,
+        private ErpConnectorService $erp,
+        private CacheInterface $cache
         ) {}
 
     /**
@@ -34,8 +39,13 @@ class CustomerEventListener {
 
         if ($entity instanceof Customer) {
             $customerNumber = $entity->getCustomerNumber();
-            $this->logger->info("Updating customer " . $customerNumber . " from ERP");
-            $this->bus->dispatch(new UpdateCustomerFromErpMessage($customerNumber));
+            $cacheId = md5("CustomerEventListener:postLoad:$customerNumber");
+            $this->cache->get($cacheId, function(ItemInterface $item) use ($customerNumber) {
+                $item->expiresAfter(3900);
+                $customer = $this->erp->getCustomer($customerNumber);
+                $this->logger->info("Updating customer " . $customerNumber . " from ERP");
+                $this->bus->dispatch(new UpdateCustomerFromErpMessage($customer));
+            });
         }
     }
 

@@ -83,6 +83,7 @@ class WholesaleProduct
             $this->balls = $data['balls'];
             $this->suctionCup = $data['suction_cup'];
             $this->harness = $data['harness'];
+            $this->maxDiscountRate = $data['max_discount_rate'];
             $this->vibrating = $data['vibrating'];
             $this->thick = $data['thick'];
             $this->doubleEnded = $data['double_ended'];
@@ -93,8 +94,13 @@ class WholesaleProduct
             $this->approvalRequired = $data['approval_required'];
             $this->type = new WholesaleType($data['type']);
             $this->manufacturer = new WholesaleManufacturer($data['type']);
-            $this->createdOn = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $data['created_on']);
-            $this->updatedOn = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $data['updated_on']);
+            if (!empty($data['created_on'])) {
+                $this->createdOn = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $data['created_on']);
+            }
+
+            if (!empty($data['updated_on'])) {
+                $this->updatedOn = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $data['updated_on']);
+            }
 
             if (!empty($data['categories'])) {
                 foreach ($data['categories'] as $category) {

@@ -1,17 +1,20 @@
 <?php
 
 namespace App\Message;
+use App\Model\ErpCustomer;
 
 final class UpdateCustomerFromErpMessage
 {
 
-    private $customerNumber;
+    private $customer;
 
-    public function __construct(string $customerNumber) {
-        $this->customerNumber = $customerNumber;
+    public function __construct(ErpCustomer $customer) {
+        $this->customer = $customer;
     }
 
-    public function getCustomerNumber() {
-        return $this->customerNumber;
+    public function getCustomer(): ErpCustomer
+    {
+        return $this->customer;
     }
+    
 }

@@ -1,18 +1,20 @@
 <?php
 
 namespace App\Message;
+use App\Model\ErpProduct;
 
 final class UpdateProductFromErpMessage
 {
 
-    private $itemNumber;
+    private $product;
 
-    public function __construct(string $itemNumber) {
-        $this->itemNumber = $itemNumber;
+    public function __construct(ErpProduct $product) {
+        $this->product = $product;
     }
 
-    public function getItemNumber() {
-        return $this->itemNumber;
+    public function getProduct(): ErpProduct
+    {
+        return $this->product;
     }
-
+    
 }
