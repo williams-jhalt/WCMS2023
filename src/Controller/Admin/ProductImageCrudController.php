@@ -18,7 +18,7 @@ class ProductImageCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        if ($pageName == Crud::PAGE_EDIT) {
+        if ($pageName == Crud::PAGE_EDIT || $pageName == Crud::PAGE_NEW) {
             return [
                 TextareaField::new('imageFile')
                     ->setFormType(VichImageType::class)
