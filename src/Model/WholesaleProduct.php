@@ -93,7 +93,7 @@ class WholesaleProduct
             $this->amazonRestricted = $data['amazon_restricted'];
             $this->approvalRequired = $data['approval_required'];
             $this->type = new WholesaleType($data['type']);
-            $this->manufacturer = new WholesaleManufacturer($data['type']);
+            $this->manufacturer = new WholesaleManufacturer($data['manufacturer']);
             if (!empty($data['created_on'])) {
                 $this->createdOn = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $data['created_on']);
             }

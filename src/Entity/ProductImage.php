@@ -118,6 +118,13 @@ class ProductImage
 
     public function setPrimaryImage(bool $primaryImage): static
     {
+
+        if ($primaryImage) {
+            foreach ($this->getProduct()->getImages() as $image) {
+                $image->setPrimaryImage(false);
+            }
+        }
+
         $this->primaryImage = $primaryImage;
 
         return $this;
