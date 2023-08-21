@@ -4,9 +4,10 @@ namespace App\MessageHandler;
 
 use App\Message\UpdateCustomerFromErpMessage;
 use App\Service\ErpConnectorService;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-final class UpdateCustomerFromErpMessageHandler implements MessageHandlerInterface
+#[AsMessageHandler]
+final class UpdateCustomerFromErpMessageHandler
 {
 
     public function __construct(

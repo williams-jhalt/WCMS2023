@@ -3,29 +3,71 @@
 {% block title %}Hello CatalogController!{% endblock %}
 
 {% block body %}
-<h1>Catalog</h1>
+
+<br>
 
 <div class="container-fluid">
     <div class="row">
 
         <div class="col-2">
 
-            <div>Manufacturers</div>
+            <div>Filter</div>
 
-            {% for manufacturer in manufacturers %}
-                <div><a href="{{ path('app_catalog', {'manufacturerId': manufacturer.id, 'page': 1}) }}">{{ manufacturer.name }}</a></div>
-            {% endfor %}
+            <hr>
+
+            <div class="card mb-3">
+
+                <div class="card-header">Types</div>
+
+                <div class="card-body overflow-auto" style="height: 250px;">
+
+                    <div class="card-text"><a {% if options.typeId == 0 %}class="text-bg-primary"{% endif %} href="{{ path('app_catalog', options|merge({'typeId': 0, 'manufacturerId': 0, 'page': 1})) }}">All Types</a></div>
+
+                    {% for productType in productTypes %}
+                        <div class="card-text"><a {% if productType == currentType %}class="text-bg-primary"{% endif %} href="{{ path('app_catalog', options|merge({'typeId': productType.id, 'page': 1, 'manufacturerId': 0})) }}">
+                            {% if productType.name is empty %}UNKNOWN{% else %}{{ productType.name }}</a>{% endif %}</div>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+            <div class="card mb-3">
+
+                <div class="card-header">Manufacturers</div>
+
+                <div class="card-body overflow-auto" style="height: 250px;">
+
+                    <div class="card-text"><a href="{{ path('app_catalog', options|merge({'manufacturerId': 0, 'page': 1})) }}">All Manufacturers</a></div>
+
+                    {% for manufacturer in manufacturers %}
+                        <div class="card-text"><a href="{{ path('app_catalog', options|merge({'manufacturerId': manufacturer.id, 'page': 1})) }}">
+                            {% if manufacturer.name is empty %}UNKNOWN{% else %}{{ manufacturer.name }}{% endif %}</a></div>
+                    {% endfor %}
+
+                </div>
+
+            </div>
 
         </div>
 
         <div class="col-10">
+
+            <div>Current Filters:
+
+            {% if currentType %}<a class="badge text-bg-secondary" href="{{ path('app_catalog', options|merge({'typeId': 0, 'page': 1})) }}">{{ currentType.name }} (X)</a>{% endif %}
+            {% if currentManufacturer %}<a class="badge text-bg-secondary" href="{{ path('app_catalog', options|merge({'manufacturerId': 0, 'page': 1})) }}">{{ currentManufacturer.name }} (X)</a>{% endif %}
+
+            </div>
+
+            <hr>
 
             <table class="table table-bordered">
                 <tr><th>Item Number</th><th>Name</th></tr>    
 
                 {% for product in pager %}
                 <tr>
-                    <td>{{ product.itemNumber }}</td>
+                    <td><a href="{{ path('app_catalog_view', options|merge({product: product.id})) }}">{{ product.itemNumber }}</a></td>
                     <td>{{ product.name }}</td>
                 </tr>
                 {% endfor %}

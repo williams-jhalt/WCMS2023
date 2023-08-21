@@ -21,9 +21,7 @@ class DashboardController extends AbstractDashboardController
     public function index(): Response
     { 
 
-        $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
-
-        return $this->redirect($adminUrlGenerator->setController(ProductCrudController::class)->generateUrl());
+        return parent::index();
 
     }
 
@@ -43,7 +41,6 @@ class DashboardController extends AbstractDashboardController
             MenuItem::linkToCrud('Products', 'fa fa-tags', Product::class),
             MenuItem::linkToCrud('Product Types', 'fa fa-tags', ProductType::class),
             MenuItem::linkToCrud('Manufacturers', 'fa fa-tags', ProductManufacturer::class),
-            MenuItem::linkToCrud('Images', 'fa fa-tags', ProductImage::class),
 
             MenuItem::section('Site'),            
             MenuItem::linkToCrud('Users', 'fa fa-tags', User::class),

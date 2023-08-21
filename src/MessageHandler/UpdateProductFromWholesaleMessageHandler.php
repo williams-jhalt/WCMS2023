@@ -4,9 +4,10 @@ namespace App\MessageHandler;
 
 use App\Message\UpdateProductFromWholesaleMessage;
 use App\Service\WholesaleService;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-final class UpdateProductFromWholesaleMessageHandler implements MessageHandlerInterface
+#[AsMessageHandler]
+final class UpdateProductFromWholesaleMessageHandler
 {
 
     public function __construct(

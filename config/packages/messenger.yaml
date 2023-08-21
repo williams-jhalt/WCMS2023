@@ -23,6 +23,8 @@ framework:
             App\Message\UpdateProductFromErpMessage: async
             App\Message\LoadNewItemsFromErpMessage: async
             App\Message\UpdateProductFromWholesaleMessage: async
+            App\Message\UpdateCustomerMessage: async
+            App\Message\UpdateProductMessage: async
 
             # Route your messages to the transports
             # 'App\Message\YourMessage': async

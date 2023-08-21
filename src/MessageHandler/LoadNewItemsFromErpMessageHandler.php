@@ -4,9 +4,10 @@ namespace App\MessageHandler;
 
 use App\Message\LoadNewItemsFromErpMessage;
 use App\Service\ErpConnectorService;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-final class LoadNewItemsFromErpMessageHandler implements MessageHandlerInterface
+#[AsMessageHandler]
+final class LoadNewItemsFromErpMessageHandler
 {
 
     public function __construct(

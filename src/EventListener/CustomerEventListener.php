@@ -4,6 +4,7 @@ namespace App\EventListener;
 
 use App\Entity\Customer;
 use App\Message\UpdateCustomerFromErpMessage;
+use App\Message\UpdateCustomerMessage;
 use App\Service\ErpConnectorService;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Events;
@@ -37,16 +38,14 @@ class CustomerEventListener {
     {
         $entity = $postLoad->getObject();
 
-        if ($entity instanceof Customer) {
-            $customerNumber = $entity->getCustomerNumber();
-            $cacheId = md5("CustomerEventListener:postLoad:$customerNumber");
-            $this->cache->get($cacheId, function(ItemInterface $item) use ($customerNumber) {
-                $item->expiresAfter(3900);
-                $customer = $this->erp->getCustomer($customerNumber);
-                $this->logger->info("Updating customer " . $customerNumber . " from ERP");
-                $this->bus->dispatch(new UpdateCustomerFromErpMessage($customer));
-            });
-        }
+        // if ($entity instanceof Customer) {
+        //     $customerNumber = $entity->getCustomerNumber();
+        //     $cacheId = md5("CustomerEventListener:postLoad:$customerNumber");
+        //     $this->cache->get($cacheId, function(ItemInterface $item) use ($customerNumber) {
+        //         $item->expiresAfter(3900);
+        //         $this->bus->dispatch(new UpdateCustomerMessage($customerNumber));
+        //     });
+        // }
     }
 
 }
