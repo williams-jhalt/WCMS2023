@@ -7,6 +7,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
@@ -33,7 +35,8 @@ class CustomerCrudController extends AbstractCrudController
             TextField::new('attention'),
             TextField::new('city'),
             TextField::new('state'),
-            DateField::new('dateOpened')
+            DateField::new('dateOpened'),
+            AssociationField::new('users')
         ];
     }
     

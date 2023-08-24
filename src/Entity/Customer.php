@@ -58,9 +58,13 @@ class Customer
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dateOpened = null;
 
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'customers')]
+    private Collection $users;
+
     public function __construct()
     {
         $this->weborders = new ArrayCollection();
+        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -257,4 +261,29 @@ class Customer
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(User $user): static
+    {
+        if (!$this->users->contains($user)) {
+            $this->users->add($user);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): static
+    {
+        $this->users->removeElement($user);
+
+        return $this;
+    }
+
 }

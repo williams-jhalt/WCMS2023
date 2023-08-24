@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -32,6 +34,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'boolean')]
     private $isVerified = false;
+
+    #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'users')]
+    private Collection $customers;
+
+    public function __construct()
+    {
+        $this->customers = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -113,5 +123,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->isVerified = $isVerified;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Customer>
+     */
+    public function getCustomers(): Collection
+    {
+        return $this->customers;
+    }
+
+    public function addCustomer(Customer $customer): static
+    {
+        if (!$this->customers->contains($customer)) {
+            $this->customers->add($customer);
+            $customer->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCustomer(Customer $customer): static
+    {
+        if ($this->customers->removeElement($customer)) {
+            $customer->removeUser($this);
+        }
+
+        return $this;
+    }
+
+    public function __toString() {
+        return $this->email;
     }
 }

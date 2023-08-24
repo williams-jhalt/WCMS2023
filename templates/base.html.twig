@@ -26,18 +26,37 @@
                     <li class="nav-item">
                         <a id="home-link" class="nav-link" aria-current="page" href="{{ path('app_default') }}">Home</a>
                     </li>
+
+                    {% if is_granted('ROLE_USER') %}
                     <li class="nav-item">
                         <a id="catalog-link" class="nav-link" aria-current="page" href="{{ path('app_catalog') }}">Catalog</a>
                     </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_CUSTOMER') %}
                     <li class="nav-item">
                         <a id="weborders-link" class="nav-link" aria-current="page" href="{{ path('app_weborders') }}">Weborders</a>
                     </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                    <li class="nav-item">
+                        <a id="admin-link" class="nav-link" aria-current="page" href="/admin">Admin</a>
+                    </li>
+                    {% endif %}
                 </ul>
-                <form class="d-flex" role="search">
-                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit">Search</button>
-                </form>
                 </div>
+                <span class="navbar-text">
+                    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <div class="d-flex">
+                     <i class="bi bi-person-fill"></i>&nbsp;&nbsp; {{ app.user.email }}
+                    &nbsp;&nbsp;
+                    <a class="nav-link" href="{{ path('app_logout') }}">Logout</a>
+                    </div>
+                    {% else %}
+                    <a class="nav-link" href="{{ path('app_login') }}">Login</a>
+                    {% endif %}
+                </span>
             </div>
         </nav>
 
