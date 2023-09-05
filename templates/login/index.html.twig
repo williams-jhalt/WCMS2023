@@ -7,17 +7,33 @@
         <div>{{ error.messageKey|trans(error.messageData, 'security') }}</div>
     {% endif %}
 
+    <div class="container">
+
+    <h1>Login</h1>
+
+    <div class="col-3">
+
     <form action="{{ path('app_login') }}" method="post">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-        <label for="username">Email:</label>
-        <input type="text" id="username" name="_username" value="{{ last_username }}">
+        <div class="mb-3">
+        <label class="form-label" for="username">Email</label>
+        <input class="form-control" type="text" id="username" name="_username" value="{{ last_username }}">
+        </div>
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="_password">
+        <div class="mb-3">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-control" type="password" id="password" name="_password">
+        </div>
 
-        <button type="submit">Login</button>
+        <button class="btn btn-primary" type="submit">Login</button>
     </form>
 
+    </div>
+
+    <br>
+
     <p><a href="{{ path('app_register') }}">Register for an Account</a></p>
+
+    </div>
 {% endblock %}
